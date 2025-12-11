@@ -7,6 +7,8 @@ gem "propshaft"
 gem "devise"
 gem "twilio-ruby"
 gem "bootsnap", require: false
+gem "chartkick"
+gem "groupdate"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
@@ -15,5 +17,4 @@ end
 group :test do
   gem "capybara"
 end
-gem "letter_opener", group: :development
 gem "letter_opener", group: :development

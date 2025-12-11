@@ -3,6 +3,14 @@ class TrucksController < ApplicationController
     @trucks = Truck.all
   end
 
+  def show
+    @truck = Truck.find(params[:id])
+    @temperature_data = @truck.monitorings
+                              .order(:recorded_at)
+                              .pluck(:recorded_at, :temperature)
+                              .map { |time, temp| [time.strftime("%Y-%m-%d %H:%M"), temp] }
+  end
+
   def new
     @truck = Truck.new
   end

@@ -2,6 +2,13 @@
 
 <%= render @truck %>
 
+<h2>Temperature History</h2>
+<% if @temperature_data.any? %>
+  <%= line_chart @temperature_data, xtitle: "Time", ytitle: "Temperature (°C)", library: { scales: { y: { suggestedMin: -10, suggestedMax: 30 } } } %>
+<% else %>
+  <p>No temperature data available for this truck.</p>
+<% end %>
+
 <div>
   <%= link_to "Edit this truck", edit_truck_path(@truck) %> |
   <%= link_to "Back to trucks", trucks_path %>
