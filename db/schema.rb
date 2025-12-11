@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_11_213101) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_11_235054) do
   create_table "customers", force: :cascade do |t|
     t.boolean "active"
     t.datetime "created_at", null: false
@@ -32,6 +32,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_11_213101) do
 
   create_table "trucks", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.decimal "max_temp"
+    t.decimal "min_temp"
     t.string "name"
     t.string "status"
     t.datetime "updated_at", null: false
