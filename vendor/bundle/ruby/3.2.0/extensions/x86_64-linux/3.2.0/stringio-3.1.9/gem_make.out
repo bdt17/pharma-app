@@ -1,0 +1,19 @@
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/stringio-3.1.9/ext/stringio
+/home/zero/.rbenv/versions/3.2.2/bin/ruby extconf.rb
+checking for rb_io_mode_t in ruby/io.h... no
+creating Makefile
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/stringio-3.1.9/ext/stringio
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-wggvqz sitelibdir\=./.gem.20251211-1326681-wggvqz clean
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/stringio-3.1.9/ext/stringio
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-wggvqz sitelibdir\=./.gem.20251211-1326681-wggvqz
+compiling stringio.c
+linking shared-object stringio.so
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/stringio-3.1.9/ext/stringio
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-wggvqz sitelibdir\=./.gem.20251211-1326681-wggvqz install
+/usr/bin/install -c -m 0755 stringio.so ./.gem.20251211-1326681-wggvqz
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/stringio-3.1.9/ext/stringio
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-wggvqz sitelibdir\=./.gem.20251211-1326681-wggvqz clean

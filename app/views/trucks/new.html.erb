@@ -1,0 +1,11 @@
+<% content_for :title, "New truck" %>
+
+<h1>New truck</h1>
+
+<%= render "form", truck: @truck %>
+
+<br>
+
+<div>
+  <%= link_to "Back to trucks", trucks_path %>
+</div>

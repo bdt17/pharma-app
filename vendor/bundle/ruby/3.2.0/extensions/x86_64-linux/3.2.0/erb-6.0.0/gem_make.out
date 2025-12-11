@@ -1,0 +1,19 @@
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/erb-6.0.0/ext/erb/escape
+/home/zero/.rbenv/versions/3.2.2/bin/ruby extconf.rb
+checking for rb_ext_ractor_safe() in ruby.h... yes
+creating Makefile
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/erb-6.0.0/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-scpcy sitelibdir\=./.gem.20251211-1326681-scpcy clean
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/erb-6.0.0/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-scpcy sitelibdir\=./.gem.20251211-1326681-scpcy
+compiling escape.c
+linking shared-object erb/escape.so
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/erb-6.0.0/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-scpcy sitelibdir\=./.gem.20251211-1326681-scpcy install
+/usr/bin/install -c -m 0755 escape.so ./.gem.20251211-1326681-scpcy/erb
+
+current directory: /home/zero/pharma-app/vendor/bundle/ruby/3.2.0/gems/erb-6.0.0/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20251211-1326681-scpcy sitelibdir\=./.gem.20251211-1326681-scpcy clean
