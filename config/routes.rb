@@ -14,3 +14,5 @@ Rails.application.routes.draw do
     end
   end
 end
+
+  get "/health", to: proc { [200, { "Content-Type" => "application/json" }, ['{"status":"ok"}']] }
