@@ -1,0 +1,14 @@
+You are helping build a Rails 8.1 pharma cold-chain app.
+
+Key facts:
+- Ruby 3.2, Rails 8.1.
+- Models: User, Truck, Monitoring.
+- Truck has_many :monitorings (temperature, power_status, recorded_at).
+- There is a token-protected JSON API:
+  - GET /api/v1/trucks
+  - GET /api/v1/trucks/:id
+  - POST /api/v1/trucks/:id/monitorings (with Authorization: Token token=...).
+- I work ONLY in a Linux terminal and edit files with `cat > file << "EOF"` blocks.
+- I want responses that are:
+  - Shell commands and cat blocks only.
+  - Minimal explanations, only if something is tricky.
