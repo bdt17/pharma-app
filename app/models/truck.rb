@@ -1,3 +1,3 @@
 class Truck < ApplicationRecord
-  belongs_to :user
+  has_many :monitorings, dependent: :destroy
 end

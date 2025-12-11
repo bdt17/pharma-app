@@ -1,21 +1,31 @@
 class TrucksController < ApplicationController
-  before_action :authenticate_user!
-
   def index
-    @trucks = current_user.trucks
+    @trucks = Truck.all
   end
 
   def new
-    @truck = current_user.trucks.build
+    @truck = Truck.new
   end
 
   def create
-    @truck = current_user.trucks.build(truck_params)
+    @truck = Truck.new(truck_params)
     if @truck.save
       redirect_to trucks_path, notice: "Truck added."
     else
       render :new
     end
+  end
+
+  def send_test_alert
+    @truck = Truck.find(params[:id])
+    AlertMailer.truck_out_of_range(User.first, @truck, nil).deliver_later
+    redirect_to trucks_path, notice: "Test alert sent for #{@truck.name}."
+  end
+
+  def destroy
+    @truck = Truck.find(params[:id])
+    @truck.destroy
+    redirect_to trucks_path, notice: "Truck deleted."
   end
 
   private

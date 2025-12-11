@@ -1,11 +1,19 @@
-<% content_for :title, "New truck" %>
-
 <h1>New truck</h1>
 
-<%= render "form", truck: @truck %>
+<%= form_with model: @truck do |f| %>
+  <p>
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </p>
 
-<br>
+  <p>
+    <%= f.label :status %><br>
+    <%= f.text_field :status %>
+  </p>
 
-<div>
-  <%= link_to "Back to trucks", trucks_path %>
-</div>
+  <p>
+    <%= f.submit "Create Truck" %>
+  </p>
+<% end %>
+
+<%= link_to "Back to trucks", trucks_path %>

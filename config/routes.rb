@@ -1,8 +1,16 @@
 Rails.application.routes.draw do
-  resources :trucks
-  root "home#index"
+  root "dashboard#index"
 
-  get "dashboard", to: "dashboard#index"
+  resources :trucks do
+    post :send_test_alert, on: :member
+  end
 
-  devise_for :users
+  namespace :api do
+    namespace :v1 do
+      get "monitorings/create"
+      resources :trucks do
+        resources :monitorings, only: [:create]
+      end
+    end
+  end
 end

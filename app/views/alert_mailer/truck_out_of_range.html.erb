@@ -1,0 +1,15 @@
+<h1>Truck out of range</h1>
+
+<p>
+  Truck: <%= @truck.name %>
+</p>
+
+<% if @monitoring %>
+  <p>
+    Last reading:
+    temp=<%= @monitoring.temperature %>,
+    power=<%= @monitoring.power_status %>
+  </p>
+<% else %>
+  <p>No monitoring data was provided with this alert.</p>
+<% end %>
