@@ -224,3 +224,4 @@ Rails.application.routes.draw do
 end
 get '/master', to: 'master_dashboard#index'
 resources :billing, only: [:new, :show]
+resources :billing, only: [:new, :success, :cancel]
