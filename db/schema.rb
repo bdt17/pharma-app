@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_11_235054) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_12_011605) do
   create_table "customers", force: :cascade do |t|
     t.boolean "active"
     t.datetime "created_at", null: false
@@ -30,14 +30,46 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_11_235054) do
     t.index ["truck_id"], name: "index_monitorings_on_truck_id"
   end
 
+  create_table "regions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "routes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "destination"
+    t.decimal "distance"
+    t.integer "estimated_duration"
+    t.string "name"
+    t.string "origin"
+    t.string "status"
+    t.integer "truck_id", null: false
+    t.datetime "updated_at", null: false
+    t.text "waypoints"
+    t.index ["truck_id"], name: "index_routes_on_truck_id"
+  end
+
+  create_table "sites", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.integer "region_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["region_id"], name: "index_sites_on_region_id"
+  end
+
   create_table "trucks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.decimal "max_temp"
     t.decimal "min_temp"
     t.string "name"
+    t.string "risk_level"
+    t.decimal "risk_score"
+    t.integer "site_id"
     t.string "status"
     t.datetime "updated_at", null: false
     t.integer "user_id"
+    t.index ["site_id"], name: "index_trucks_on_site_id"
     t.index ["user_id"], name: "index_trucks_on_user_id"
   end
 
@@ -53,6 +85,24 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_11_235054) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "waypoints", force: :cascade do |t|
+    t.datetime "arrival_time"
+    t.datetime "created_at", null: false
+    t.datetime "departure_time"
+    t.integer "position"
+    t.integer "route_id", null: false
+    t.integer "site_id", null: false
+    t.string "status"
+    t.datetime "updated_at", null: false
+    t.index ["route_id"], name: "index_waypoints_on_route_id"
+    t.index ["site_id"], name: "index_waypoints_on_site_id"
+  end
+
   add_foreign_key "monitorings", "trucks"
+  add_foreign_key "routes", "trucks"
+  add_foreign_key "sites", "regions"
+  add_foreign_key "trucks", "sites"
   add_foreign_key "trucks", "users"
+  add_foreign_key "waypoints", "routes"
+  add_foreign_key "waypoints", "sites"
 end

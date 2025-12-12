@@ -22,8 +22,18 @@
   </div>
 
   <div>
-    <%= form.label :user_id, style: "display: block" %>
-    <%= form.text_field :user_id %>
+    <%= form.label :site_id, "Site", style: "display: block" %>
+    <%= form.collection_select :site_id, sites, :id, :name, { prompt: "Select a site", include_blank: "No site" }, {} %>
+  </div>
+
+  <div>
+    <%= form.label :min_temp, "Min Temperature (°C)", style: "display: block" %>
+    <%= form.number_field :min_temp, step: 0.1 %>
+  </div>
+
+  <div>
+    <%= form.label :max_temp, "Max Temperature (°C)", style: "display: block" %>
+    <%= form.number_field :max_temp, step: 0.1 %>
   </div>
 
   <div>

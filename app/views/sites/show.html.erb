@@ -1,0 +1,49 @@
+<h1><%= @site.name %></h1>
+<p><strong>Region:</strong> <%= link_to @site.region.name, region_path(@site.region) %></p>
+
+<h2>Trucks at this Site</h2>
+<% if @site.trucks.any? %>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Status</th>
+      <th>Risk Level</th>
+      <th>Actions</th>
+    </tr>
+    <% @site.trucks.each do |truck| %>
+      <tr>
+        <td><%= link_to truck.name, truck_path(truck) %></td>
+        <td><%= truck.status.presence || "OK" %></td>
+        <td>
+          <% if truck.risk_level.present? %>
+            <span class="risk-badge risk-<%= truck.risk_level %>"><%= truck.risk_level.upcase %></span>
+          <% else %>
+            <span class="risk-badge risk-unknown">N/A</span>
+          <% end %>
+        </td>
+        <td><%= link_to "View", truck_path(truck) %></td>
+      </tr>
+    <% end %>
+  </table>
+<% else %>
+  <p>No trucks at this site yet.</p>
+<% end %>
+
+<p>
+  <%= link_to "Edit Site", edit_site_path(@site) %> |
+  <%= link_to "Back to Sites", sites_path %>
+</p>
+
+<style>
+  .risk-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  .risk-low { background: #28a745; color: white; }
+  .risk-medium { background: #ffc107; color: black; }
+  .risk-high { background: #fd7e14; color: white; }
+  .risk-critical { background: #dc3545; color: white; }
+  .risk-unknown { background: #6c757d; color: white; }
+</style>

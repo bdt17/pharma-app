@@ -1,0 +1,23 @@
+<%= form_with model: site do |f| %>
+  <% if site.errors.any? %>
+    <div style="color: red;">
+      <ul>
+        <% site.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <p>
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </p>
+
+  <p>
+    <%= f.label :region_id, "Region" %><br>
+    <%= f.collection_select :region_id, regions, :id, :name, prompt: "Select a region" %>
+  </p>
+
+  <p><%= f.submit %></p>
+<% end %>

@@ -10,8 +10,34 @@
   </div>
 
   <div>
-    <strong>User:</strong>
-    <%= truck.user_id %>
+    <strong>Temperature Range:</strong>
+    <%= truck.min_temp.present? ? "#{truck.min_temp}°C" : "N/A" %> -
+    <%= truck.max_temp.present? ? "#{truck.max_temp}°C" : "N/A" %>
   </div>
 
+  <div>
+    <strong>Risk Level:</strong>
+    <% if truck.risk_level.present? %>
+      <span class="risk-badge risk-<%= truck.risk_level %>">
+        <%= truck.risk_level.upcase %>
+      </span>
+      (<%= truck.risk_score&.round || 0 %>/100)
+    <% else %>
+      <span class="risk-badge risk-unknown">Not calculated</span>
+    <% end %>
+  </div>
 </div>
+
+<style>
+  .risk-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  .risk-low { background: #28a745; color: white; }
+  .risk-medium { background: #ffc107; color: black; }
+  .risk-high { background: #fd7e14; color: white; }
+  .risk-critical { background: #dc3545; color: white; }
+  .risk-unknown { background: #6c757d; color: white; }
+</style>

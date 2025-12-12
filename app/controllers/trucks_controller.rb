@@ -1,6 +1,6 @@
 class TrucksController < ApplicationController
   def index
-    @trucks = Truck.all
+    @trucks = Truck.includes(:site).all
   end
 
   def show
@@ -13,6 +13,7 @@ class TrucksController < ApplicationController
 
   def new
     @truck = Truck.new
+    @sites = Site.includes(:region).all
   end
 
   def create
@@ -20,7 +21,23 @@ class TrucksController < ApplicationController
     if @truck.save
       redirect_to trucks_path, notice: "Truck added."
     else
+      @sites = Site.includes(:region).all
       render :new
+    end
+  end
+
+  def edit
+    @truck = Truck.find(params[:id])
+    @sites = Site.includes(:region).all
+  end
+
+  def update
+    @truck = Truck.find(params[:id])
+    if @truck.update(truck_params)
+      redirect_to @truck, notice: "Truck updated."
+    else
+      @sites = Site.includes(:region).all
+      render :edit
     end
   end
 
@@ -39,6 +56,6 @@ class TrucksController < ApplicationController
   private
 
   def truck_params
-    params.require(:truck).permit(:name, :status)
+    params.require(:truck).permit(:name, :status, :site_id, :min_temp, :max_temp)
   end
 end

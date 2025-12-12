@@ -1,0 +1,141 @@
+<h1><%= @route.name %></h1>
+
+<div style="margin-bottom: 20px;">
+  <strong>Status:</strong>
+  <span class="status-badge status-<%= @route.status || 'draft' %>">
+    <%= (@route.status || 'draft').upcase %>
+  </span>
+  &nbsp;|&nbsp;
+  <strong>Truck:</strong> <%= @route.truck&.name || "Not assigned" %>
+  &nbsp;|&nbsp;
+  <strong>Progress:</strong> <%= @route.progress_percentage %>% (<%= @route.completed_stops %>/<%= @route.total_stops %> stops)
+</div>
+
+<% if @route.distance.present? %>
+  <div style="margin-bottom: 20px;">
+    <strong>Total Distance:</strong> <%= @route.distance.round(1) %> km
+    &nbsp;|&nbsp;
+    <strong>Est. Duration:</strong> <%= @route.estimated_duration %> minutes
+  </div>
+<% end %>
+
+<% if @suggestions.any? %>
+  <div style="background:#fff3cd;border:1px solid #ffc107;padding:20px;border-radius:8px;margin-bottom:20px;">
+    <h3>Risk-Based Rerouting Suggestions</h3>
+    <ul>
+      <% @suggestions.each do |suggestion| %>
+        <li>
+          <strong><%= suggestion[:site_name] %></strong> (Risk: <%= suggestion[:risk_score].round %>)
+          - <%= suggestion[:recommendation] %>
+        </li>
+      <% end %>
+    </ul>
+    <%= button_to "Reorder by Risk Priority", reorder_by_risk_route_path(@route), method: :post %>
+  </div>
+<% end %>
+
+<h2>Waypoints</h2>
+<% if @route.waypoints.any? %>
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Site</th>
+      <th>Region</th>
+      <th>Status</th>
+      <th>Risk Score</th>
+      <th>Arrival</th>
+      <th>Departure</th>
+      <th>Actions</th>
+    </tr>
+    <% @route.waypoints.each do |waypoint| %>
+      <tr>
+        <td><%= waypoint.position %></td>
+        <td><%= link_to waypoint.site.name, site_path(waypoint.site) %></td>
+        <td><%= waypoint.site.region.name %></td>
+        <td>
+          <span class="wp-status wp-<%= waypoint.status || 'pending' %>">
+            <%= (waypoint.status || 'pending').upcase %>
+          </span>
+        </td>
+        <td>
+          <% risk = waypoint.site_risk_level %>
+          <% if risk > 70 %>
+            <span style="color: #dc3545; font-weight: bold;"><%= risk.round %></span>
+          <% elsif risk > 50 %>
+            <span style="color: #fd7e14; font-weight: bold;"><%= risk.round %></span>
+          <% else %>
+            <%= risk.round %>
+          <% end %>
+        </td>
+        <td><%= waypoint.arrival_time&.strftime("%H:%M") || "-" %></td>
+        <td><%= waypoint.departure_time&.strftime("%H:%M") || "-" %></td>
+        <td>
+          <% if @route.in_progress? && waypoint.status != 'completed' %>
+            <% if waypoint.status != 'arrived' %>
+              <%= button_to "Arrived", mark_waypoint_arrived_route_path(@route, waypoint_id: waypoint.id), method: :post %>
+            <% else %>
+              <%= button_to "Complete", mark_waypoint_completed_route_path(@route, waypoint_id: waypoint.id), method: :post %>
+            <% end %>
+          <% end %>
+          <% if @route.status == 'draft' || @route.status == 'planned' %>
+            <%= button_to "Remove", remove_waypoint_route_path(@route, waypoint_id: waypoint.id), method: :delete %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </table>
+<% else %>
+  <p>No waypoints added yet.</p>
+<% end %>
+
+<% if @route.status == 'draft' || @route.status == 'planned' %>
+  <h3>Add Waypoint</h3>
+  <%= form_with url: add_waypoint_route_path(@route), method: :post, local: true do |f| %>
+    <%= select_tag :site_id, options_from_collection_for_select(Site.includes(:region).all, :id, :name), prompt: "Select a site" %>
+    <%= f.submit "Add to Route" %>
+  <% end %>
+<% end %>
+
+<div style="margin-top: 30px;">
+  <% if @route.status == 'draft' %>
+    <%= button_to "Optimize Route", optimize_route_path(@route), method: :post %>
+    <%= button_to "Plan Route", start_route_path(@route), method: :post, params: { route: { status: 'planned' } } %>
+  <% end %>
+
+  <% if @route.can_start? %>
+    <%= button_to "Start Route", start_route_path(@route), method: :post, style: "background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px;" %>
+  <% end %>
+
+  <% if @route.in_progress? %>
+    <%= button_to "Complete Route", complete_route_path(@route), method: :post, style: "background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px;" %>
+  <% end %>
+</div>
+
+<div style="margin-top: 20px;">
+  <%= link_to "Edit Route", edit_route_path(@route) %> |
+  <%= link_to "Back to Routes", routes_path %>
+</div>
+
+<style>
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  .status-draft { background: #6c757d; color: white; }
+  .status-planned { background: #17a2b8; color: white; }
+  .status-in_progress { background: #007bff; color: white; }
+  .status-completed { background: #28a745; color: white; }
+  .status-cancelled { background: #dc3545; color: white; }
+
+  .wp-status {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+  .wp-pending { background: #6c757d; color: white; }
+  .wp-arrived { background: #ffc107; color: black; }
+  .wp-completed { background: #28a745; color: white; }
+  .wp-skipped { background: #dc3545; color: white; }
+</style>

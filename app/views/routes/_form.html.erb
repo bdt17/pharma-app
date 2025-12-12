@@ -1,0 +1,48 @@
+<%= form_with model: route do |f| %>
+  <% if route.errors.any? %>
+    <div style="color: red;">
+      <ul>
+        <% route.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <p>
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </p>
+
+  <p>
+    <%= f.label :origin, "Origin Address" %><br>
+    <%= f.text_field :origin %>
+  </p>
+
+  <p>
+    <%= f.label :destination, "Destination Address" %><br>
+    <%= f.text_field :destination %>
+  </p>
+
+  <p>
+    <%= f.label :truck_id, "Assign Truck" %><br>
+    <%= f.collection_select :truck_id, trucks, :id, :name, { prompt: "Select a truck", include_blank: "No truck assigned" } %>
+  </p>
+
+  <% unless route.persisted? %>
+    <p>
+      <label>Initial Waypoints (select sites in order)</label><br>
+      <% sites.group_by { |s| s.region.name }.each do |region_name, region_sites| %>
+        <strong><%= region_name %></strong><br>
+        <% region_sites.each do |site| %>
+          <label>
+            <input type="checkbox" name="site_ids[]" value="<%= site.id %>">
+            <%= site.name %>
+          </label><br>
+        <% end %>
+      <% end %>
+    </p>
+  <% end %>
+
+  <p><%= f.submit %></p>
+<% end %>

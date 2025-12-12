@@ -1,8 +1,69 @@
-<h1 style="margin:40px;font-size:32px;">📊 PharmaTransport Dashboard</h1>
-<p style="margin:40px;font-size:18px;">You’re logged in. Next: add trucks and monitoring.</p>
+<h1 style="margin:40px;font-size:32px;">PharmaTransport Dashboard</h1>
 
-<p style="margin:40px;">
-  <a href="/trucks" style="background:#28a745;color:white;padding:15px 30px;text-decoration:none;border-radius:8px;font-size:18px;">
-    ➕ Add / View Trucks
-  </a>
-</p>
+<div style="margin:40px;">
+  <h2>Risk Overview</h2>
+  <% high_risk_trucks = Truck.where(risk_level: ['high', 'critical']).order(risk_score: :desc) %>
+  <% if high_risk_trucks.any? %>
+    <div style="background:#fff3cd;border:1px solid #ffc107;padding:20px;border-radius:8px;margin-bottom:20px;">
+      <strong>Attention Required:</strong> <%= high_risk_trucks.count %> truck(s) with high/critical risk
+      <ul>
+        <% high_risk_trucks.each do |truck| %>
+          <li>
+            <%= link_to truck.name, truck_path(truck) %> -
+            <span class="risk-badge risk-<%= truck.risk_level %>"><%= truck.risk_level.upcase %></span>
+            (Score: <%= truck.risk_score&.round || 0 %>)
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% else %>
+    <div style="background:#d4edda;border:1px solid #28a745;padding:20px;border-radius:8px;margin-bottom:20px;">
+      All trucks operating within normal risk parameters.
+    </div>
+  <% end %>
+</div>
+
+<div style="margin:40px;">
+  <h2>Quick Links</h2>
+  <p>
+    <a href="/trucks" class="nav-btn">Trucks</a>
+    <a href="/routes" class="nav-btn">Routes</a>
+    <a href="/sites" class="nav-btn">Sites</a>
+    <a href="/regions" class="nav-btn">Regions</a>
+    <a href="/analytics" class="nav-btn nav-btn-analytics">Analytics</a>
+  </p>
+</div>
+
+<style>
+  .nav-btn {
+    background: #007bff;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-right: 10px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .nav-btn:hover {
+    background: #0056b3;
+  }
+  .nav-btn-analytics {
+    background: #6f42c1;
+  }
+  .nav-btn-analytics:hover {
+    background: #5a32a3;
+  }
+  .risk-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  .risk-low { background: #28a745; color: white; }
+  .risk-medium { background: #ffc107; color: black; }
+  .risk-high { background: #fd7e14; color: white; }
+  .risk-critical { background: #dc3545; color: white; }
+  .risk-unknown { background: #6c757d; color: white; }
+</style>

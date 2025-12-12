@@ -1,0 +1,23 @@
+<h1>Regions</h1>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Sites</th>
+    <th>Trucks</th>
+    <th>Actions</th>
+  </tr>
+  <% @regions.each do |region| %>
+    <tr>
+      <td><%= link_to region.name, region_path(region) %></td>
+      <td><%= region.sites.count %></td>
+      <td><%= region.sites.sum { |s| s.trucks.count } %></td>
+      <td>
+        <%= link_to "Edit", edit_region_path(region) %> |
+        <%= button_to "Delete", region_path(region), method: :delete, data: { turbo_confirm: "Delete this region?" } %>
+      </td>
+    </tr>
+  <% end %>
+</table>
+
+<p><%= link_to "New Region", new_region_path %></p>

@@ -1,0 +1,18 @@
+<%= form_with model: region do |f| %>
+  <% if region.errors.any? %>
+    <div style="color: red;">
+      <ul>
+        <% region.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <p>
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </p>
+
+  <p><%= f.submit %></p>
+<% end %>

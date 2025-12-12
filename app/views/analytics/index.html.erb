@@ -1,0 +1,181 @@
+<h1>Analytics & Executive Insights</h1>
+
+<div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+  <%= form_with url: analytics_path, method: :get, local: true do |f| %>
+    <label>Region:</label>
+    <%= select_tag :region_id, options_from_collection_for_select(@regions, :id, :name, params[:region_id]), prompt: "All Regions" %>
+    
+    <label>Site:</label>
+    <%= select_tag :site_id, options_from_collection_for_select(@sites, :id, :name, params[:site_id]), prompt: "All Sites" %>
+    
+    <label>From:</label>
+    <%= date_field_tag :start_date, params[:start_date] || 30.days.ago.to_date %>
+    
+    <label>To:</label>
+    <%= date_field_tag :end_date, params[:end_date] || Date.current %>
+    
+    <%= submit_tag "Filter", style: "background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;" %>
+  <% end %>
+</div>
+
+<h2>Key Performance Indicators</h2>
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-value"><%= @summary[:total_regions] %></div>
+    <div class="kpi-label">Regions</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value"><%= @summary[:total_sites] %></div>
+    <div class="kpi-label">Sites</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value"><%= @summary[:total_trucks] %></div>
+    <div class="kpi-label">Trucks</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value"><%= @summary[:total_monitorings] %></div>
+    <div class="kpi-label">Readings</div>
+  </div>
+  <div class="kpi-card kpi-alert">
+    <div class="kpi-value"><%= @summary[:total_excursions] %></div>
+    <div class="kpi-label">Excursions</div>
+  </div>
+  <div class="kpi-card <%= @summary[:excursion_rate] > 10 ? 'kpi-alert' : '' %>">
+    <div class="kpi-value"><%= @summary[:excursion_rate] %>%</div>
+    <div class="kpi-label">Excursion Rate</div>
+  </div>
+  <div class="kpi-card <%= @summary[:high_risk_trucks] > 0 ? 'kpi-warning' : '' %>">
+    <div class="kpi-value"><%= @summary[:high_risk_trucks] %></div>
+    <div class="kpi-label">High Risk Trucks</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value"><%= @summary[:active_routes] %></div>
+    <div class="kpi-label">Active Routes</div>
+  </div>
+</div>
+
+<h2>Excursions Over Time</h2>
+<% if @excursions_over_time.any? %>
+  <%= line_chart @excursions_over_time, xtitle: "Date", ytitle: "Excursions", library: { scales: { y: { beginAtZero: true } } } %>
+<% else %>
+  <p>No excursion data available for the selected period.</p>
+<% end %>
+
+<h2>Excursions by Region Over Time</h2>
+<% chart_data = @excursions_by_region.map { |region, dates| { name: region, data: dates } } %>
+<% if chart_data.any? && chart_data.any? { |d| d[:data].any? } %>
+  <%= line_chart chart_data, xtitle: "Date", ytitle: "Excursions", library: { scales: { y: { beginAtZero: true } } } %>
+<% else %>
+  <p>No regional excursion data available for the selected period.</p>
+<% end %>
+
+<h2>Performance by Region</h2>
+<% if @by_region.any? %>
+  <table>
+    <tr>
+      <th>Region</th>
+      <th>Sites</th>
+      <th>Trucks</th>
+      <th>Readings</th>
+      <th>Excursions</th>
+      <th>Excursion Rate</th>
+      <th>High Risk</th>
+    </tr>
+    <% @by_region.each do |region| %>
+      <tr>
+        <td><%= link_to region[:region_name], analytics_path(region_id: region[:region_id]) %></td>
+        <td><%= region[:sites_count] %></td>
+        <td><%= region[:trucks_count] %></td>
+        <td><%= region[:monitorings_count] %></td>
+        <td class="<%= region[:excursions_count] > 0 ? 'highlight-red' : '' %>"><%= region[:excursions_count] %></td>
+        <td class="<%= region[:excursion_rate] > 10 ? 'highlight-red' : '' %>"><%= region[:excursion_rate] %>%</td>
+        <td class="<%= region[:high_risk_trucks] > 0 ? 'highlight-orange' : '' %>"><%= region[:high_risk_trucks] %></td>
+      </tr>
+    <% end %>
+  </table>
+<% else %>
+  <p>No region data available.</p>
+<% end %>
+
+<h2>Top Excursion Sites</h2>
+<% if @top_sites.any? %>
+  <table>
+    <tr>
+      <th>Site</th>
+      <th>Region</th>
+      <th>Trucks</th>
+      <th>Excursions</th>
+      <th>Excursion Rate</th>
+    </tr>
+    <% @top_sites.each do |site| %>
+      <tr>
+        <td><%= link_to site[:site_name], analytics_path(site_id: site[:site_id]) %></td>
+        <td><%= site[:region_name] %></td>
+        <td><%= site[:trucks_count] %></td>
+        <td class="<%= site[:excursions_count] > 0 ? 'highlight-red' : '' %>"><%= site[:excursions_count] %></td>
+        <td class="<%= site[:excursion_rate] > 10 ? 'highlight-red' : '' %>"><%= site[:excursion_rate] %>%</td>
+      </tr>
+    <% end %>
+  </table>
+<% else %>
+  <p>No site data available.</p>
+<% end %>
+
+<p style="margin-top: 30px;">
+  <%= link_to "Back to Dashboard", root_path %>
+</p>
+
+<style>
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  .kpi-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+  .kpi-card.kpi-alert {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+  }
+  .kpi-card.kpi-warning {
+    background: #fff3cd;
+    border-color: #ffc107;
+  }
+  .kpi-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+  }
+  .kpi-label {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    text-align: left;
+  }
+  th {
+    background: #f8f9fa;
+  }
+  .highlight-red {
+    background: #f8d7da;
+    font-weight: bold;
+  }
+  .highlight-orange {
+    background: #fff3cd;
+    font-weight: bold;
+  }
+</style>

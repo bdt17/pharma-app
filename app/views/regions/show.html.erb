@@ -1,0 +1,26 @@
+<h1><%= @region.name %></h1>
+
+<h2>Sites in this Region</h2>
+<% if @region.sites.any? %>
+  <table>
+    <tr>
+      <th>Site Name</th>
+      <th>Trucks</th>
+      <th>Actions</th>
+    </tr>
+    <% @region.sites.each do |site| %>
+      <tr>
+        <td><%= link_to site.name, site_path(site) %></td>
+        <td><%= site.trucks.count %></td>
+        <td><%= link_to "View", site_path(site) %></td>
+      </tr>
+    <% end %>
+  </table>
+<% else %>
+  <p>No sites in this region yet.</p>
+<% end %>
+
+<p>
+  <%= link_to "Edit Region", edit_region_path(@region) %> |
+  <%= link_to "Back to Regions", regions_path %>
+</p>

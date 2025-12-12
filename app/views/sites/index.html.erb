@@ -1,0 +1,23 @@
+<h1>Sites</h1>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Region</th>
+    <th>Trucks</th>
+    <th>Actions</th>
+  </tr>
+  <% @sites.each do |site| %>
+    <tr>
+      <td><%= link_to site.name, site_path(site) %></td>
+      <td><%= link_to site.region.name, region_path(site.region) %></td>
+      <td><%= site.trucks.count %></td>
+      <td>
+        <%= link_to "Edit", edit_site_path(site) %> |
+        <%= button_to "Delete", site_path(site), method: :delete, data: { turbo_confirm: "Delete this site?" } %>
+      </td>
+    </tr>
+  <% end %>
+</table>
+
+<p><%= link_to "New Site", new_site_path %></p>
