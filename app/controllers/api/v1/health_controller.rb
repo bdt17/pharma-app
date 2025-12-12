@@ -23,3 +23,4 @@ class Api::V1::HealthController < ActionController::API
     render json: { error: e.class.name, message: e.message }, status: :internal_server_error
   end
 end
+# deploy bump 1765525543
