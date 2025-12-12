@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   get "analytics", to: "analytics#index"
   get "analytics/summary", to: "analytics#summary"
   get "analytics/regions", to: "analytics#regions"
+  get "analytics/states", to: "analytics#regions"
   get "analytics/sites", to: "analytics#sites"
   get "analytics/routes", to: "analytics#routes"
   get "analytics/excursions_over_time", to: "analytics#excursions_over_time"
@@ -48,6 +49,7 @@ Rails.application.routes.draw do
       get "trucks_by_risk", to: "trucks#by_risk"
       get "analytics/summary", to: "analytics#summary"
       get "analytics/regions", to: "analytics#regions"
+      get "analytics/states", to: "analytics#regions"
       get "analytics/sites", to: "analytics#sites"
       get "analytics/routes", to: "analytics#routes"
     end

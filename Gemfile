@@ -18,3 +18,5 @@ group :test do
   gem "capybara"
 end
 gem "letter_opener", group: :development
+gem 'pg', group: :production
+gem "redis", group: :production
