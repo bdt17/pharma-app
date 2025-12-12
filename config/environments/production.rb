@@ -14,3 +14,8 @@ Rails.application.configure do
   # Add any other existing production settings you had before,
   # but keep them inside this configure block.
 end
+
+  config.force_ssl = true
+  config.cache_classes = true
+  config.eager_load = true
+  config.assets.compile = false
