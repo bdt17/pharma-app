@@ -12,3 +12,4 @@ Rails.application.routes.draw do
 
   get '/master', to: 'master_dashboard#index'
 end
+# cache-bust 1765520860
