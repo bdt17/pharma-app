@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get "billing/new"
+  get "billing/show"
   root "dashboard#index"
 
   # Health check endpoints (no auth)
@@ -221,3 +223,4 @@ Rails.application.routes.draw do
   mount ActionCable.server => "/cable"
 end
 get '/master', to: 'master_dashboard#index'
+resources :billing, only: [:new, :show]
