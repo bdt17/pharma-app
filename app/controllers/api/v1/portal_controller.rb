@@ -1,5 +1,5 @@
 class Api::V1::PortalController < Api::BaseController
-  skip_before_action :authenticate_api_token!, only: [:track]
+  skip_before_action :authenticate_api_token, only: [:track]
 
   # Public tracking endpoint
   def track
