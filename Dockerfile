@@ -3,7 +3,7 @@ WORKDIR /rails
 
 RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
 
-ENV RAILS_ENV=production BUILD_ID=debug1
+ENV RAILS_ENV=production BUILD_ID=debug2
 
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
