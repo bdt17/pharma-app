@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  condition: MyString
+  action: MyString
+  priority: 1
+  active: false
+
+two:
+  condition: MyString
+  action: MyString
+  priority: 1
+  active: false

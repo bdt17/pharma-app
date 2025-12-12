@@ -49,10 +49,113 @@ class Api::V1::RoutesController < Api::BaseController
     }
   end
 
+  def risk_assessment
+    route = Route.find(params[:id])
+    assessment = RouteRiskScorer.suggest_action(route)
+    render json: assessment
+  end
+
+  def forecast
+    route = Route.find(params[:id])
+    forecast = PredictiveRiskEngine.forecast(route)
+    render json: forecast
+  end
+
+  def early_warnings
+    routes = Route.where(status: 'in_progress').includes(:truck, :waypoints)
+    warnings = PredictiveRiskEngine.early_warnings(routes)
+
+    render json: {
+      generated_at: Time.current,
+      threshold: PredictiveRiskEngine::EARLY_WARNING_THRESHOLD,
+      warnings_count: warnings.count,
+      warnings: warnings
+    }
+  end
+
+  def recommend
+    candidates = Route.where(status: 'planned').includes(:truck, :waypoints)
+    constraints = optimization_constraints
+
+    result = DynamicRouteOptimizer.recommend(candidates, constraints)
+
+    render json: {
+      optimization_mode: result[:optimization_mode],
+      constraints: result[:constraints_applied],
+      recommended: result[:recommended] ? serialize_recommendation(result[:recommended]) : nil,
+      alternatives: result[:alternatives].map { |r| serialize_recommendation(r) },
+      ineligible: result[:ineligible].map { |r| serialize_recommendation(r) }
+    }
+  end
+
+  def compare
+    route_ids = params[:route_ids] || []
+    routes = Route.where(id: route_ids).includes(:truck, :waypoints)
+    constraints = optimization_constraints
+
+    comparisons = routes.map do |route|
+      scores = DynamicRouteOptimizer.score_route(route, constraints)
+      {
+        route: serialize_route(route),
+        scores: scores,
+        tradeoffs: compute_tradeoffs(route, constraints)
+      }
+    end
+
+    render json: {
+      constraints: constraints,
+      comparisons: comparisons.sort_by { |c| -c[:scores][:overall] }
+    }
+  end
+
   private
 
   def route_params
-    params.require(:route).permit(:name, :origin, :destination, :truck_id)
+    params.require(:route).permit(
+      :name, :origin, :destination, :truck_id,
+      :max_transit_hours, :preferred_carrier, :allowed_detours,
+      :temperature_sensitivity, :priority, :cost_estimate,
+      :lane_risk_factor, :time_window_start, :time_window_end
+    )
+  end
+
+  def optimization_constraints
+    {
+      max_risk: params[:max_risk]&.to_i,
+      max_hours: params[:max_hours]&.to_i,
+      max_cost: params[:max_cost]&.to_f,
+      prefer_carrier: params[:prefer_carrier],
+      time_window_start: params[:time_window_start].present? ? Time.parse(params[:time_window_start]) : nil,
+      time_window_end: params[:time_window_end].present? ? Time.parse(params[:time_window_end]) : nil,
+      optimize_for: params[:optimize_for] || 'balanced'
+    }
+  end
+
+  def serialize_recommendation(rec)
+    {
+      route: serialize_route(rec[:route]),
+      scores: rec[:scores],
+      eligible: rec[:eligible],
+      tradeoffs: rec[:tradeoffs]
+    }
+  end
+
+  def compute_tradeoffs(route, constraints)
+    risk = route.risk_score rescue 0
+    tradeoffs = []
+
+    if risk > 60
+      tradeoffs << { factor: 'risk', message: "Elevated risk score: #{risk}" }
+    end
+
+    if constraints[:max_hours] && route.estimated_duration
+      hours = route.estimated_duration / 60.0
+      if hours > constraints[:max_hours]
+        tradeoffs << { factor: 'time', message: "Exceeds time limit by #{(hours - constraints[:max_hours]).round(1)}h" }
+      end
+    end
+
+    tradeoffs
   end
 
   def create_waypoints(route)
@@ -65,6 +168,8 @@ class Api::V1::RoutesController < Api::BaseController
   end
 
   def serialize_route(route, include_waypoints: false)
+    risk = route.risk_assessment rescue { score: 0, level: "unknown" }
+
     data = {
       id: route.id,
       name: route.name,
@@ -78,6 +183,16 @@ class Api::V1::RoutesController < Api::BaseController
       progress_percentage: route.progress_percentage,
       distance: route.distance,
       estimated_duration: route.estimated_duration,
+      risk_score: risk[:score],
+      risk_level: risk[:level],
+      max_transit_hours: route.max_transit_hours,
+      temperature_sensitivity: route.temperature_sensitivity,
+      priority: route.priority,
+      cost_estimate: route.cost_estimate,
+      time_window_start: route.time_window_start,
+      time_window_end: route.time_window_end,
+      started_at: route.started_at,
+      completed_at: route.completed_at,
       created_at: route.created_at,
       updated_at: route.updated_at
     }

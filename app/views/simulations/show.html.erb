@@ -1,0 +1,383 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="<%= simulations_path %>" class="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">&larr; Back to Simulations</a>
+      <h1 class="text-2xl font-bold text-gray-900"><%= @simulation.scenario_name %></h1>
+      <p class="text-gray-600"><%= @simulation.description %></p>
+    </div>
+    <div class="flex gap-2">
+      <% if @simulation.can_start? %>
+        <button onclick="startSimulation(<%= @simulation.id %>)" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+          Start Simulation
+        </button>
+      <% end %>
+      <% if @simulation.status == 'completed' %>
+        <button onclick="toggleReplay()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
+          Replay Timeline
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Status and Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-sm text-gray-500">Status</div>
+      <% status_colors = { 'draft' => 'gray', 'running' => 'blue', 'paused' => 'yellow', 'completed' => 'green', 'failed' => 'red' } %>
+      <div class="text-xl font-bold text-<%= status_colors[@simulation.status] || 'gray' %>-600">
+        <%= @simulation.status&.capitalize %>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-sm text-gray-500">Events Generated</div>
+      <div class="text-xl font-bold text-gray-900"><%= @simulation.event_count %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-sm text-gray-500">Duration</div>
+      <div class="text-xl font-bold text-gray-900">
+        <% if @simulation.duration_seconds %>
+          <%= @simulation.duration_seconds / 60 %>m <%= @simulation.duration_seconds % 60 %>s
+        <% else %>
+          -
+        <% end %>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-sm text-gray-500">Created</div>
+      <div class="text-xl font-bold text-gray-900"><%= @simulation.created_at.strftime("%Y-%m-%d %H:%M") %></div>
+    </div>
+  </div>
+
+  <% if @simulation.results_hash.present? %>
+  <!-- Results Summary -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Simulation Results</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <div class="text-2xl font-bold text-gray-900"><%= @simulation.results_hash['ticks_processed'] || 0 %></div>
+          <div class="text-sm text-gray-500">Ticks Processed</div>
+        </div>
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <div class="text-2xl font-bold text-gray-900"><%= @simulation.results_hash['events_generated'] || 0 %></div>
+          <div class="text-sm text-gray-500">Events Generated</div>
+        </div>
+        <div class="text-center p-4 bg-red-50 rounded-lg">
+          <div class="text-2xl font-bold text-red-600"><%= @simulation.results_hash['excursions_detected'] || 0 %></div>
+          <div class="text-sm text-gray-500">Excursions Detected</div>
+        </div>
+        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+          <div class="text-2xl font-bold text-yellow-600"><%= @simulation.results_hash['alerts_triggered'] || 0 %></div>
+          <div class="text-sm text-gray-500">Alerts Triggered</div>
+        </div>
+      </div>
+
+      <% if @simulation.results_hash['trucks_affected']&.any? %>
+        <div class="mt-4">
+          <span class="text-sm font-medium text-gray-700">Trucks Affected:</span>
+          <span class="text-sm text-gray-600"><%= @simulation.results_hash['trucks_affected'].join(', ') %></span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  <% end %>
+
+  <!-- Configuration -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Configuration</h2>
+    </div>
+    <div class="p-6">
+      <pre class="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto"><%= JSON.pretty_generate(@simulation.configuration_hash) %></pre>
+    </div>
+  </div>
+
+  <!-- Event Timeline -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <h2 class="text-lg font-semibold text-gray-900">Event Timeline</h2>
+      <div class="flex gap-2">
+        <select id="eventFilter" onchange="filterEvents()" class="border border-gray-300 rounded px-2 py-1 text-sm">
+          <option value="">All Events</option>
+          <option value="temperature_reading">Temperature Readings</option>
+          <option value="alert_triggered">Alerts</option>
+          <option value="excursion_start">Excursion Start</option>
+          <option value="excursion_end">Excursion End</option>
+          <option value="power_change">Power Changes</option>
+          <option value="route_progress">Route Progress</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Replay Controls -->
+    <div id="replayControls" class="hidden px-6 py-4 bg-purple-50 border-b border-purple-200">
+      <div class="flex items-center gap-4">
+        <button onclick="playReplay()" id="playBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded">
+          Play
+        </button>
+        <button onclick="pauseReplay()" id="pauseBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded hidden">
+          Pause
+        </button>
+        <button onclick="resetReplay()" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded">
+          Reset
+        </button>
+        <div class="flex-1">
+          <input type="range" id="replaySlider" min="0" max="100" value="0" class="w-full" onchange="seekReplay(this.value)">
+        </div>
+        <span id="replayTime" class="text-sm text-gray-600">0:00</span>
+        <select id="replaySpeed" class="border border-gray-300 rounded px-2 py-1 text-sm">
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x</option>
+          <option value="2">2x</option>
+          <option value="5">5x</option>
+          <option value="10">10x</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Temperature Chart -->
+    <div id="tempChart" class="px-6 py-4 border-b border-gray-200 hidden">
+      <canvas id="temperatureCanvas" height="200"></canvas>
+    </div>
+
+    <div class="divide-y divide-gray-200 max-h-[600px] overflow-y-auto" id="eventsList">
+      <% @events.each do |event| %>
+        <div class="event-row px-6 py-3 hover:bg-gray-50" data-type="<%= event.event_type %>" data-timestamp="<%= event.timestamp.to_i %>">
+          <div class="flex items-start gap-4">
+            <div class="text-xs text-gray-400 w-32 flex-shrink-0">
+              <%= event.timestamp.strftime("%H:%M:%S") %>
+            </div>
+            <div class="flex-1">
+              <% type_colors = {
+                'temperature_reading' => 'blue',
+                'alert_triggered' => 'red',
+                'excursion_start' => 'red',
+                'excursion_end' => 'green',
+                'power_change' => 'yellow',
+                'route_progress' => 'purple',
+                'simulation_tick' => 'gray'
+              } %>
+              <span class="inline-block px-2 py-0.5 text-xs font-medium rounded bg-<%= type_colors[event.event_type] || 'gray' %>-100 text-<%= type_colors[event.event_type] || 'gray' %>-800 mb-1">
+                <%= event.event_type.titleize %>
+              </span>
+              <% if event.truck_id %>
+                <span class="text-xs text-gray-500 ml-2">Truck #<%= event.truck_id %></span>
+              <% end %>
+              <% if event.route_id %>
+                <span class="text-xs text-gray-500 ml-2">Route #<%= event.route_id %></span>
+              <% end %>
+              <div class="text-sm text-gray-700 mt-1">
+                <% data = event.data_hash %>
+                <% if data['temperature'] %>
+                  <span class="font-medium">Temperature: <%= data['temperature'] %>°C</span>
+                <% end %>
+                <% if data['power_status'] %>
+                  <span class="ml-2">Power: <%= data['power_status'] %></span>
+                <% end %>
+                <% if data['alert_type'] %>
+                  <span class="text-red-600 font-medium">Alert: <%= data['alert_type'] %></span>
+                <% end %>
+                <% if data['actual_progress'] %>
+                  <span>Progress: <%= data['actual_progress'] %>%</span>
+                  <% if data['delayed'] %>
+                    <span class="text-yellow-600 ml-2">(Delayed: <%= data['delay_cause'] %>)</span>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      <% if @events.empty? %>
+        <div class="px-6 py-8 text-center text-gray-500">
+          No events recorded yet. Start the simulation to generate events.
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let replayInterval = null;
+let currentIndex = 0;
+let events = [];
+let chart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Collect events data
+  document.querySelectorAll('.event-row').forEach(row => {
+    events.push({
+      type: row.dataset.type,
+      timestamp: parseInt(row.dataset.timestamp),
+      element: row
+    });
+  });
+
+  // Initialize chart if we have temperature events
+  const tempEvents = events.filter(e => e.type === 'temperature_reading');
+  if (tempEvents.length > 0) {
+    initChart();
+  }
+
+  // Check if replay mode
+  if (new URLSearchParams(window.location.search).get('replay') === 'true') {
+    toggleReplay();
+  }
+});
+
+function toggleReplay() {
+  const controls = document.getElementById('replayControls');
+  const chartDiv = document.getElementById('tempChart');
+  controls.classList.toggle('hidden');
+  chartDiv.classList.toggle('hidden');
+}
+
+function initChart() {
+  const ctx = document.getElementById('temperatureCanvas').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Temperature (°C)',
+        data: [],
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.1,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: false
+        }
+      },
+      animation: false
+    }
+  });
+}
+
+function playReplay() {
+  document.getElementById('playBtn').classList.add('hidden');
+  document.getElementById('pauseBtn').classList.remove('hidden');
+
+  const speed = parseFloat(document.getElementById('replaySpeed').value);
+  const interval = 1000 / speed;
+
+  replayInterval = setInterval(() => {
+    if (currentIndex >= events.length) {
+      pauseReplay();
+      return;
+    }
+
+    highlightEvent(currentIndex);
+    updateSlider();
+    currentIndex++;
+  }, interval);
+}
+
+function pauseReplay() {
+  clearInterval(replayInterval);
+  document.getElementById('playBtn').classList.remove('hidden');
+  document.getElementById('pauseBtn').classList.add('hidden');
+}
+
+function resetReplay() {
+  pauseReplay();
+  currentIndex = 0;
+  updateSlider();
+
+  // Reset chart
+  if (chart) {
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+    chart.update();
+  }
+
+  // Reset highlights
+  document.querySelectorAll('.event-row').forEach(row => {
+    row.classList.remove('bg-yellow-100');
+  });
+}
+
+function seekReplay(value) {
+  currentIndex = Math.floor(events.length * value / 100);
+  updateSlider();
+}
+
+function updateSlider() {
+  const slider = document.getElementById('replaySlider');
+  slider.value = events.length > 0 ? (currentIndex / events.length * 100) : 0;
+
+  const time = document.getElementById('replayTime');
+  const minutes = Math.floor(currentIndex / 60);
+  const seconds = currentIndex % 60;
+  time.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function highlightEvent(index) {
+  // Remove previous highlight
+  document.querySelectorAll('.event-row').forEach(row => {
+    row.classList.remove('bg-yellow-100');
+  });
+
+  const event = events[index];
+  if (!event) return;
+
+  // Highlight current event
+  event.element.classList.add('bg-yellow-100');
+  event.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Update chart for temperature events
+  if (event.type === 'temperature_reading' && chart) {
+    const row = event.element;
+    const tempText = row.querySelector('.font-medium')?.textContent;
+    if (tempText) {
+      const temp = parseFloat(tempText.match(/[\d.]+/)?.[0]);
+      if (!isNaN(temp)) {
+        chart.data.labels.push(index);
+        chart.data.datasets[0].data.push(temp);
+        chart.update();
+      }
+    }
+  }
+}
+
+function filterEvents() {
+  const filter = document.getElementById('eventFilter').value;
+  document.querySelectorAll('.event-row').forEach(row => {
+    if (!filter || row.dataset.type === filter) {
+      row.classList.remove('hidden');
+    } else {
+      row.classList.add('hidden');
+    }
+  });
+}
+
+async function startSimulation(id) {
+  if (!confirm('Start this simulation?')) return;
+
+  try {
+    const response = await fetch(`/api/v1/simulations/${id}/start`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Token token="<%= ENV['PHARMA_API_TOKEN'] || 'dev-token' %>"'
+      }
+    });
+
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert('Error: ' + (error.error || 'Failed to start simulation'));
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+</script>

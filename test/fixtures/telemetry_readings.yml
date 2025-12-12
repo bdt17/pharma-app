@@ -1,0 +1,17 @@
+one:
+  truck: one
+  latitude: 42.3601
+  longitude: -71.0589
+  recorded_at: <%= 1.hour.ago %>
+  temperature_c: 5.5
+  humidity: 45.0
+  speed_kph: 60.0
+
+two:
+  truck: two
+  latitude: 33.4484
+  longitude: -112.0740
+  recorded_at: <%= 30.minutes.ago %>
+  temperature_c: 7.2
+  humidity: 50.0
+  speed_kph: 0.0

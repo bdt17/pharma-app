@@ -1,0 +1,19 @@
+route_start:
+  truck: one
+  event_type: route_started
+  description: Route started from Boston warehouse
+  latitude: 42.3601
+  longitude: -71.0589
+  temperature_c: 5.0
+  recorded_at: <%= 2.hours.ago %>
+  recorded_by: driver@example.com
+
+stop_arrival:
+  truck: one
+  event_type: stop_arrival
+  description: Arrived at Cambridge facility
+  latitude: 42.3736
+  longitude: -71.1097
+  temperature_c: 5.2
+  recorded_at: <%= 1.hour.ago %>
+  recorded_by: driver@example.com

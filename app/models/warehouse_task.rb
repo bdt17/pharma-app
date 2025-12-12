@@ -1,0 +1,2 @@
+class WarehouseTask < ApplicationRecord
+end

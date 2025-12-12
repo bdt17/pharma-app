@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  node_type: MyString
+  capacity: 9.99
+  demand: 9.99
+  truck: one
+
+two:
+  node_type: MyString
+  capacity: 9.99
+  demand: 9.99
+  truck: two

@@ -1,0 +1,300 @@
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Network Planning & Capacity</h1>
+    <%= link_to 'Generate New Plan', new_network_planning_path, class: 'btn btn-primary' %>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <h5 class="card-title">Total Demand</h5>
+          <h2><%= number_with_delimiter(@demand_analysis[:total_demand]) %></h2>
+          <small>units for period</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h5 class="card-title">Total Capacity</h5>
+          <h2><%= number_with_delimiter(@demand_analysis[:total_capacity]) %></h2>
+          <small>units available</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card <%= @demand_analysis[:capacity_gap] > 0 ? 'bg-danger' : 'bg-info' %> text-white">
+        <div class="card-body">
+          <h5 class="card-title">Capacity Gap</h5>
+          <h2><%= number_with_delimiter(@demand_analysis[:capacity_gap]) %></h2>
+          <small><%= @demand_analysis[:capacity_gap] > 0 ? 'shortfall' : 'surplus' %></small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card <%= @demand_analysis[:status] == 'over_capacity' ? 'bg-danger' : (@demand_analysis[:status] == 'constrained' ? 'bg-warning' : 'bg-secondary') %> text-white">
+        <div class="card-body">
+          <h5 class="card-title">Utilization</h5>
+          <h2><%= @demand_analysis[:utilization_percent] %>%</h2>
+          <small><%= @demand_analysis[:status] %></small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Regional Capacity Summary</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Region</th>
+                <th>Forecast Demand</th>
+                <th>Node Capacity</th>
+                <th>Gap</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @regional_summary.each do |region| %>
+                <tr>
+                  <td><%= region[:region_name] %></td>
+                  <td><%= number_with_delimiter(region[:forecast_demand]) %></td>
+                  <td><%= number_with_delimiter(region[:node_capacity]) %></td>
+                  <td class="<%= region[:gap] > 0 ? 'text-danger' : 'text-success' %>">
+                    <%= number_with_delimiter(region[:gap]) %>
+                  </td>
+                  <td>
+                    <span class="badge <%= region[:status] == 'adequate' ? 'bg-success' : 'bg-danger' %>">
+                      <%= region[:status] %>
+                    </span>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Capacity Upgrades Required</h5>
+        </div>
+        <div class="card-body">
+          <% if @capacity_upgrades.any? %>
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Name/Code</th>
+                  <th>Current</th>
+                  <th>Recommended</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @capacity_upgrades.each do |upgrade| %>
+                  <tr>
+                    <td><%= upgrade[:type].titleize %></td>
+                    <td><%= upgrade[:code] || upgrade[:name] %></td>
+                    <td><%= number_with_delimiter(upgrade[:current_capacity]) %></td>
+                    <td class="text-success">+<%= number_with_delimiter(upgrade[:recommended_increase]) %></td>
+                    <td>
+                      <span class="badge <%= upgrade[:priority] == 'critical' ? 'bg-danger' : 'bg-warning' %>">
+                        <%= upgrade[:priority] %>
+                      </span>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <p class="text-muted mb-0">No capacity upgrades required at this time.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Lane Suggestions (Next 7 Days)</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <div class="text-center">
+                <h4><%= @lane_suggestions[:summary][:total_lanes] %></h4>
+                <small class="text-muted">Total Lanes</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center">
+                <h4 class="text-danger"><%= @lane_suggestions[:summary][:over_capacity] %></h4>
+                <small class="text-muted">Over Capacity</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center">
+                <h4 class="text-warning"><%= @lane_suggestions[:summary][:under_utilized] %></h4>
+                <small class="text-muted">Under Utilized</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center">
+                <h4 class="text-success"><%= @lane_suggestions[:summary][:optimal] %></h4>
+                <small class="text-muted">Optimal</small>
+              </div>
+            </div>
+          </div>
+          <table class="table table-sm table-hover">
+            <thead>
+              <tr>
+                <th>Lane Code</th>
+                <th>Carrier</th>
+                <th>Mode</th>
+                <th>Daily Capacity</th>
+                <th>Suggested Shipments</th>
+                <th>Utilization</th>
+                <th>Recommendation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @lane_suggestions[:lanes].each do |lane| %>
+                <tr>
+                  <td><%= lane[:lane_code] %></td>
+                  <td><%= lane[:carrier] || 'N/A' %></td>
+                  <td><%= lane[:transport_mode] || 'N/A' %></td>
+                  <td><%= lane[:daily_capacity] %></td>
+                  <td><%= lane[:suggested_daily_shipments] %></td>
+                  <td>
+                    <div class="progress" style="height: 20px;">
+                      <div class="progress-bar <%= lane[:utilization_percent] > 90 ? 'bg-danger' : (lane[:utilization_percent] > 70 ? 'bg-warning' : 'bg-success') %>"
+                           style="width: <%= [lane[:utilization_percent], 100].min %>%">
+                        <%= lane[:utilization_percent] %>%
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge <%= lane[:recommendation] == 'no_action' ? 'bg-success' : (lane[:recommendation] == 'increase_capacity' ? 'bg-danger' : 'bg-warning') %>">
+                      <%= lane[:recommendation].humanize %>
+                    </span>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Demand by Product</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Product Code</th>
+                <th>Forecast Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @demand_analysis[:by_product].each do |product, quantity| %>
+                <tr>
+                  <td><%= product %></td>
+                  <td><%= number_with_delimiter(quantity) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Demand by Region</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Region</th>
+                <th>Forecast Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @demand_analysis[:by_region].each do |region, quantity| %>
+                <tr>
+                  <td><%= region %></td>
+                  <td><%= number_with_delimiter(quantity) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Recent Capacity Plans</h5>
+        </div>
+        <div class="card-body">
+          <% if @capacity_plans.any? %>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Period</th>
+                  <th>Items</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @capacity_plans.each do |plan| %>
+                  <tr>
+                    <td><%= link_to plan.name, network_planning_path(plan) %></td>
+                    <td><%= plan.plan_start_date %> - <%= plan.plan_end_date %></td>
+                    <td><%= plan.capacity_plan_items.count %></td>
+                    <td>
+                      <span class="badge <%= plan.status == 'approved' ? 'bg-success' : (plan.status == 'rejected' ? 'bg-danger' : 'bg-secondary') %>">
+                        <%= plan.status %>
+                      </span>
+                    </td>
+                    <td><%= plan.created_at.strftime('%Y-%m-%d %H:%M') %></td>
+                    <td>
+                      <%= link_to 'View', network_planning_path(plan), class: 'btn btn-sm btn-outline-primary' %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <p class="text-muted mb-0">No capacity plans generated yet.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

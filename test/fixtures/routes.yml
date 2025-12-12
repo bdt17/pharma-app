@@ -1,21 +1,15 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
 one:
-  name: MyString
-  origin: MyString
-  destination: MyString
-  waypoints: MyText
-  status: MyString
-  truck: one
-  estimated_duration: 1
-  distance: 9.99
+  name: Route Alpha
+  origin: Warehouse A
+  destination: Hospital B
+  status: draft
+  estimated_duration: 120
+  distance: 50.5
 
 two:
-  name: MyString
-  origin: MyString
-  destination: MyString
-  waypoints: MyText
-  status: MyString
-  truck: two
-  estimated_duration: 1
-  distance: 9.99
+  name: Route Beta
+  origin: Depot C
+  destination: Clinic D
+  status: planned
+  estimated_duration: 90
+  distance: 35.0

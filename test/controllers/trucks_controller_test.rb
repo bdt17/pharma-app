@@ -17,10 +17,10 @@ class TrucksControllerTest < ActionDispatch::IntegrationTest
 
   test "should create truck" do
     assert_difference("Truck.count") do
-      post trucks_url, params: { truck: { name: @truck.name, status: @truck.status, user_id: @truck.user_id } }
+      post trucks_url, params: { truck: { name: "New Truck", status: "active" } }
     end
 
-    assert_redirected_to truck_url(Truck.last)
+    assert_redirected_to trucks_url
   end
 
   test "should show truck" do
@@ -34,13 +34,14 @@ class TrucksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update truck" do
-    patch truck_url(@truck), params: { truck: { name: @truck.name, status: @truck.status, user_id: @truck.user_id } }
+    patch truck_url(@truck), params: { truck: { name: "Updated", status: "active" } }
     assert_redirected_to truck_url(@truck)
   end
 
   test "should destroy truck" do
+    truck_to_delete = Truck.create!(name: "Deletable", status: "test")
     assert_difference("Truck.count", -1) do
-      delete truck_url(@truck)
+      delete truck_url(truck_to_delete)
     end
 
     assert_redirected_to trucks_url

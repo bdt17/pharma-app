@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
+    .header { background: #dc3545; color: white; padding: 20px; text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .content { padding: 20px; }
+    .alert-box { background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 15px; margin-bottom: 20px; }
+    .details { margin: 20px 0; }
+    .details table { width: 100%; border-collapse: collapse; }
+    .details td { padding: 10px; border-bottom: 1px solid #dee2e6; }
+    .details td:first-child { font-weight: bold; width: 40%; color: #666; }
+    .footer { background: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666; }
+    .temp-value { font-size: 24px; font-weight: bold; color: #dc3545; }
+    .range { color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Temperature Excursion Alert</h1>
+    </div>
+    <div class="content">
+      <div class="alert-box">
+        <strong>Truck <%= @truck.name %></strong> has reported a temperature reading outside of acceptable range.
+      </div>
+
+      <div style="text-align: center; margin: 20px 0;">
+        <div class="temp-value"><%= @reading.temperature_c %>&deg;C</div>
+        <div class="range">
+          Acceptable range: <%= @truck.min_temp || '-' %>&deg;C to <%= @truck.max_temp || '-' %>&deg;C
+        </div>
+      </div>
+
+      <div class="details">
+        <table>
+          <tr>
+            <td>Truck</td>
+            <td><%= @truck.name %></td>
+          </tr>
+          <tr>
+            <td>Site</td>
+            <td><%= @site&.name || 'N/A' %></td>
+          </tr>
+          <tr>
+            <td>Region</td>
+            <td><%= @region&.name || 'N/A' %></td>
+          </tr>
+          <tr>
+            <td>Recorded At</td>
+            <td><%= @reading.recorded_at&.strftime("%Y-%m-%d %H:%M:%S %Z") %></td>
+          </tr>
+          <% if @reading.latitude.present? && @reading.longitude.present? %>
+          <tr>
+            <td>Location</td>
+            <td><%= @reading.latitude %>, <%= @reading.longitude %></td>
+          </tr>
+          <% end %>
+          <% if @reading.humidity.present? %>
+          <tr>
+            <td>Humidity</td>
+            <td><%= @reading.humidity %>%</td>
+          </tr>
+          <% end %>
+          <% if @reading.speed_kph.present? %>
+          <tr>
+            <td>Speed</td>
+            <td><%= @reading.speed_kph %> km/h</td>
+          </tr>
+          <% end %>
+          <tr>
+            <td>Risk Level</td>
+            <td><%= @truck.risk_level&.upcase || 'N/A' %></td>
+          </tr>
+        </table>
+      </div>
+
+      <p>Please investigate this excursion immediately and take corrective action if necessary.</p>
+    </div>
+    <div class="footer">
+      PharmaTransport Cold Chain Monitoring System<br>
+      This is an automated alert. Do not reply to this email.
+    </div>
+  </div>
+</body>
+</html>

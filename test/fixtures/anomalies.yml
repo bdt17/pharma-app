@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  voltage_deviation: 1.5
+  temp_deviation: 1.5
+  truck: one
+  severity: MyString
+
+two:
+  voltage_deviation: 1.5
+  temp_deviation: 1.5
+  truck: two
+  severity: MyString

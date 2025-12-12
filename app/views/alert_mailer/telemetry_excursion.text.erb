@@ -1,0 +1,30 @@
+TEMPERATURE EXCURSION ALERT
+===========================
+
+Truck <%= @truck.name %> has reported a temperature reading outside of acceptable range.
+
+CURRENT READING: <%= @reading.temperature_c %>°C
+ACCEPTABLE RANGE: <%= @truck.min_temp || '-' %>°C to <%= @truck.max_temp || '-' %>°C
+
+Details:
+--------
+Truck: <%= @truck.name %>
+Site: <%= @site&.name || 'N/A' %>
+Region: <%= @region&.name || 'N/A' %>
+Recorded At: <%= @reading.recorded_at&.strftime("%Y-%m-%d %H:%M:%S %Z") %>
+<% if @reading.latitude.present? && @reading.longitude.present? %>
+Location: <%= @reading.latitude %>, <%= @reading.longitude %>
+<% end %>
+<% if @reading.humidity.present? %>
+Humidity: <%= @reading.humidity %>%
+<% end %>
+<% if @reading.speed_kph.present? %>
+Speed: <%= @reading.speed_kph %> km/h
+<% end %>
+Risk Level: <%= @truck.risk_level&.upcase || 'N/A' %>
+
+Please investigate this excursion immediately and take corrective action if necessary.
+
+--
+PharmaTransport Cold Chain Monitoring System
+This is an automated alert. Do not reply to this email.

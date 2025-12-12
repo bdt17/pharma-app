@@ -1,0 +1,38 @@
+<div class="container mt-4">
+  <h1>Generate New Capacity Plan</h1>
+
+  <%= form_tag network_planning_index_path, method: :post, class: 'mt-4' do %>
+    <div class="card">
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="name" class="form-label">Plan Name</label>
+          <input type="text" class="form-control" id="name" name="name" required
+                 placeholder="e.g., Q1 2025 Capacity Plan">
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="start_date" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" required
+                   value="<%= Date.current %>">
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="end_date" class="form-label">End Date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" required
+                   value="<%= 30.days.from_now.to_date %>">
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <strong>Note:</strong> This will analyze all active lanes, nodes, and regional demand forecasts
+          for the specified period and generate capacity recommendations.
+        </div>
+      </div>
+      <div class="card-footer">
+        <%= submit_tag 'Generate Plan', class: 'btn btn-primary' %>
+        <%= link_to 'Cancel', network_planning_index_path, class: 'btn btn-outline-secondary ms-2' %>
+      </div>
+    </div>
+  <% end %>
+</div>

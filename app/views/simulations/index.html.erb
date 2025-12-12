@@ -1,0 +1,337 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Digital Twin Simulator</h1>
+    <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Simulation
+    </button>
+  </div>
+
+  <!-- Scenario Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+    <% scenario_info = {
+      'temperature_excursion' => { icon: '🌡️', color: 'red', desc: 'Test temperature going out of range' },
+      'power_failure' => { icon: '⚡', color: 'yellow', desc: 'Simulate refrigeration power loss' },
+      'route_delay' => { icon: '🚚', color: 'blue', desc: 'Test delivery schedule delays' },
+      'multi_truck_stress' => { icon: '🔥', color: 'orange', desc: 'Multiple trucks with issues' },
+      'weather_event' => { icon: '☀️', color: 'amber', desc: 'External weather impact' },
+      'equipment_degradation' => { icon: '⚙️', color: 'gray', desc: 'Gradual efficiency loss' },
+      'custom' => { icon: '🔧', color: 'purple', desc: 'Custom parameters' }
+    } %>
+    <% @scenarios.each do |scenario| %>
+      <% info = scenario_info[scenario] || { icon: '📊', color: 'gray', desc: 'Simulation scenario' } %>
+      <div class="bg-white rounded-lg shadow p-4 border-l-4 border-<%= info[:color] %>-500 hover:shadow-md cursor-pointer" onclick="selectScenario('<%= scenario %>')">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl"><%= info[:icon] %></span>
+          <div>
+            <h3 class="font-semibold text-gray-900"><%= scenario.titleize %></h3>
+            <p class="text-sm text-gray-600"><%= info[:desc] %></p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Simulations List -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Simulation History</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scenario</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Events</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @simulations.each do |sim| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="font-medium text-gray-900"><%= sim.scenario_name %></div>
+                <div class="text-sm text-gray-500"><%= sim.description&.truncate(50) %></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% status_colors = { 'draft' => 'gray', 'running' => 'blue', 'paused' => 'yellow', 'completed' => 'green', 'failed' => 'red' } %>
+                <span class="px-2 py-1 text-xs font-medium rounded-full bg-<%= status_colors[sim.status] || 'gray' %>-100 text-<%= status_colors[sim.status] || 'gray' %>-800">
+                  <%= sim.status&.capitalize %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <%= sim.event_count %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <% if sim.duration_seconds %>
+                  <%= sim.duration_seconds / 60 %>m <%= sim.duration_seconds % 60 %>s
+                <% else %>
+                  -
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <%= sim.created_at.strftime("%Y-%m-%d %H:%M") %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <div class="flex gap-2">
+                  <a href="<%= simulation_detail_path(sim) %>" class="text-blue-600 hover:text-blue-800">View</a>
+                  <% if sim.can_start? %>
+                    <button onclick="startSimulation(<%= sim.id %>)" class="text-green-600 hover:text-green-800">Start</button>
+                  <% end %>
+                  <% if sim.status == 'completed' %>
+                    <button onclick="replaySimulation(<%= sim.id %>)" class="text-purple-600 hover:text-purple-800">Replay</button>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+          <% if @simulations.empty? %>
+            <tr>
+              <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                No simulations yet. Create one to test your cold chain scenarios.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Create Simulation Modal -->
+<div id="createModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-lg font-semibold text-gray-900">Create Simulation</h3>
+      <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <form id="createForm" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Scenario Type</label>
+        <select id="scenarioType" name="scenario_type" class="w-full border border-gray-300 rounded-lg px-3 py-2" onchange="updateScenarioParams()">
+          <% @scenarios.each do |scenario| %>
+            <option value="<%= scenario %>"><%= scenario.titleize %></option>
+          <% end %>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+        <input type="text" id="simName" name="name" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="My Simulation">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+        <input type="number" id="duration" name="duration_minutes" value="60" min="1" max="480" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div id="scenarioParams" class="space-y-4">
+        <!-- Dynamic scenario-specific parameters -->
+      </div>
+      <div class="flex justify-end gap-3 pt-4">
+        <button type="button" onclick="closeCreateModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openCreateModal() {
+  document.getElementById('createModal').classList.remove('hidden');
+  updateScenarioParams();
+}
+
+function closeCreateModal() {
+  document.getElementById('createModal').classList.add('hidden');
+}
+
+function selectScenario(scenario) {
+  document.getElementById('scenarioType').value = scenario;
+  openCreateModal();
+}
+
+function updateScenarioParams() {
+  const scenario = document.getElementById('scenarioType').value;
+  const paramsDiv = document.getElementById('scenarioParams');
+
+  const params = {
+    'temperature_excursion': `
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Excursion Start (minute)</label>
+        <input type="number" name="excursion_start_minute" value="15" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+        <select name="excursion_severity" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="mild">Mild (+2°C)</option>
+          <option value="moderate" selected>Moderate (+5°C)</option>
+          <option value="severe">Severe (+10°C)</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="checkbox" name="recovery_enabled" id="recovery" checked class="rounded">
+        <label for="recovery" class="text-sm text-gray-700">Enable temperature recovery</label>
+      </div>
+    `,
+    'power_failure': `
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Failure Start (minute)</label>
+        <input type="number" name="failure_start_minute" value="10" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Failure Duration (minutes)</label>
+        <input type="number" name="failure_duration_minutes" value="20" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Temperature Rise Rate (°C/min)</label>
+        <input type="number" name="temperature_rise_rate" value="0.5" step="0.1" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+    `,
+    'route_delay': `
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Delay Start (minute)</label>
+        <input type="number" name="delay_start_minute" value="20" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Delay Duration (minutes)</label>
+        <input type="number" name="delay_duration_minutes" value="30" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Delay Cause</label>
+        <select name="delay_cause" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="traffic">Traffic</option>
+          <option value="weather">Weather</option>
+          <option value="mechanical">Mechanical Issue</option>
+          <option value="customs">Customs/Inspection</option>
+        </select>
+      </div>
+    `,
+    'multi_truck_stress': `
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Affected Trucks (%)</label>
+        <input type="number" name="affected_percentage" value="30" min="10" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Stress Type</label>
+        <select name="stress_type" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="mixed">Mixed Issues</option>
+          <option value="temperature">Temperature Only</option>
+          <option value="power">Power Issues</option>
+        </select>
+      </div>
+    `,
+    'weather_event': `
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Weather Type</label>
+        <select name="weather_type" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="heat_wave">Heat Wave</option>
+          <option value="cold_snap">Cold Snap</option>
+          <option value="humidity">High Humidity</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Ambient Temp Change (°C)</label>
+        <input type="number" name="ambient_temp_change" value="15" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Event Start (minute)</label>
+        <input type="number" name="event_start_minute" value="5" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+    `,
+    'equipment_degradation': `
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Degradation Rate (%/min)</label>
+        <input type="number" name="degradation_rate" value="0.1" step="0.05" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Initial Efficiency (%)</label>
+        <input type="number" name="initial_efficiency" value="100" min="50" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+    `,
+    'custom': `
+      <p class="text-sm text-gray-500">Custom scenarios use default parameters. Configure via API for advanced options.</p>
+    `
+  };
+
+  paramsDiv.innerHTML = params[scenario] || '';
+}
+
+document.getElementById('createForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+  const data = {};
+  formData.forEach((value, key) => {
+    if (key === 'recovery_enabled') {
+      data[key] = true;
+    } else if (!isNaN(value) && value !== '') {
+      data[key] = parseFloat(value);
+    } else {
+      data[key] = value;
+    }
+  });
+
+  // Handle checkbox when unchecked
+  if (!formData.has('recovery_enabled') && document.getElementById('scenarioType').value === 'temperature_excursion') {
+    data['recovery_enabled'] = false;
+  }
+
+  try {
+    const response = await fetch('/api/v1/simulations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Token token="<%= ENV['PHARMA_API_TOKEN'] || 'dev-token' %>"'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert('Error: ' + (error.error || 'Failed to create simulation'));
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+});
+
+async function startSimulation(id) {
+  if (!confirm('Start this simulation?')) return;
+
+  try {
+    const response = await fetch(`/api/v1/simulations/${id}/start`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Token token="<%= ENV['PHARMA_API_TOKEN'] || 'dev-token' %>"'
+      }
+    });
+
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert('Error: ' + (error.error || 'Failed to start simulation'));
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+async function replaySimulation(id) {
+  window.location.href = `/simulations/${id}?replay=true`;
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeCreateModal();
+});
+</script>
