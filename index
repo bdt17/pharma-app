@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PharmaTransport - Cold Chain Delivery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Hero -->
+    <div class="text-center mb-16">
+      <h1 class="text-5xl font-bold text-gray-900 mb-6">PharmaTransport</h1>
+      <p class="text-xl text-gray-600 mb-8">AI-Optimized Cold Chain Pharma Delivery</p>
+      <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-4xl mx-auto">
+        <p class="text-lg">Temperature-controlled • Real-time tracking • FDA compliant</p>
+      </div>
+    </div>
+
+    <!-- Login -->
+    <div class="max-w-md mx-auto mb-16">
+      <div class="bg-white p-8 rounded-2xl shadow-xl">
+        <h2 class="text-2xl font-bold mb-6">Pharmacy Login</h2>
+        <form>
+          <input type="email" placeholder="email@pharmacy.com" class="w-full p-4 border rounded-xl mb-4">
+          <input type="password" placeholder="Password" class="w-full p-4 border rounded-xl mb-6">
+          <button class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Prescription Upload -->
+    <div class="max-w-2xl mx-auto mb-16">
+      <div class="bg-white p-8 rounded-2xl shadow-xl">
+        <h2 class="text-2xl font-bold mb-6">Upload Prescription</h2>
+        <div class="border-4 border-dashed border-gray-300 rounded-2xl p-12 text-center hover:border-indigo-400 transition">
+          <p class="text-xl mb-4">Drag & drop prescription PDF/image</p>
+          <button class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold">Browse Files</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Tracker -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="p-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+        <h2 class="text-2xl font-bold">Live Shipment Tracker #RX-12345</h2>
+        <p class="opacity-90">Temperature: 4°C ✓ | ETA: 23min</p>
+      </div>
+      <div id="map" class="h-96"></div>
+    </div>
+  </div>
+
+  <script>
+    // Fake animated tracker
+    const map = L.map('map').setView([37.7749, -122.4194], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    
+    const truck = L.marker([37.7749, -122.4194], {icon: L.divIcon({className: 'truck-icon', html: '🚚'})}).addTo(map);
+    
+    // Animate truck movement
+    let pos = 0;
+    const moveTruck = () => {
+      pos += 0.001;
+      truck.setLatLng([37.7749 + Math.sin(pos)*0.01, -122.4194 + Math.cos(pos)*0.01]);
+      setTimeout(moveTruck, 1000);
+    };
+    moveTruck();
+  </script>
+</body>
+</html>
