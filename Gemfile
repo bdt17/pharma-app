@@ -20,4 +20,4 @@ end
 gem "letter_opener", group: :development
 gem 'pg', group: :production
 gem "redis", group: :production
-gem 'stripe', '~> 8.0'
+gem 'stripe', '~> 18.0'
